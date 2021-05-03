@@ -9,9 +9,9 @@ import static spark.Spark.*;
 public class ServerMain {
 	public static int PORT = 8888;
 	public static String API_ENTRYPOINT = "/api/v1";
-	
+
 	private Database db;
-	
+
 	public void startServer() {
 		staticFiles.location("/public");
 
@@ -19,7 +19,7 @@ public class ServerMain {
 		db.connect();
 
 		port(PORT);
-		
+
 		enableCORS();
 
 		initIndex();
@@ -43,15 +43,15 @@ public class ServerMain {
 		get(API_ENTRYPOINT + "/cookies", (req, res) -> db.getCookies(req, res));
 		get(API_ENTRYPOINT + "/recipes", (req, res) -> db.getRecipes(req, res));
 		get(API_ENTRYPOINT + "/pallets", (req, res) -> db.getPallets(req, res));
-		
+
 		post(API_ENTRYPOINT + "/reset", (req, res) -> db.reset(req, res));
 		post(API_ENTRYPOINT + "/pallets", (req, res) -> db.createPallet(req, res));
 	}
-	
+
 	public void stopServer() {
 		stop();
 	}
-	
+	//hej filip
 	/**
 	 * Setup CORS, see:
 	 * - https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
