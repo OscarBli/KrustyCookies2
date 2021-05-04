@@ -13,6 +13,7 @@ public class ServerMain {
 	private Database db;
 
 	public void startServer() {
+		//db.test();
 		staticFiles.location("/public");
 
 		db = new Database();

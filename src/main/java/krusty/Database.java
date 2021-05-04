@@ -41,6 +41,8 @@ public class Database {
 
 	// TODO: Implement and change output in all methods below!
 
+
+
 	public String getCustomers(Request req, Response res) {
 		return "{}";
 	}
@@ -50,6 +52,16 @@ public class Database {
 	}
 
 	public String getCookies(Request req, Response res) {
+			if(req.params("cookie")!=null){
+				String sql ="SELECT * FROM Cookie";
+				try(Statement st =conn.createStatement()){
+					ResultSet rs=st.executeQuery(sql);
+					return Jsonizer.toJson(rs,"cookie");
+				} catch (SQLException e){
+
+				}
+			}
+
 		return "{\"cookies\":[]}";
 	}
 
