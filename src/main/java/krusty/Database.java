@@ -24,7 +24,7 @@ public class Database {
 
 	public Boolean connect() {
 		try{
-			Class.forName("com.mysql.jdbc.Driver");
+			Class.forName("com.mysql.cj.jdbc.Driver");
 			conn=DriverManager.getConnection("jdbc:mysql://"+jdbcString+"/"+jdbcUsername,jdbcUsername,jdbcPassword
 			);
 			return true;
@@ -44,24 +44,40 @@ public class Database {
 
 
 	public String getCustomers(Request req, Response res) {
+		String sql = "SELECT Adress as address, customerName as name FROM Customer";
+
+		try(Statement st= conn.createStatement()){
+			ResultSet rs=st.executeQuery(sql);
+			return Jsonizer.toJson(rs, "customers");
+		} catch (SQLException e){
+			e.printStackTrace();
+		}
+
 		return "{}";
 	}
 
 	public String getRawMaterials(Request req, Response res) {
+		String sql = "SELECT ingredientName as name, amountInStock as amount, unit FROM Ingredient";
+
+		try(Statement st=conn.createStatement()){
+			ResultSet rs=st.executeQuery(sql);
+			return  Jsonizer.toJson(rs,"raw-materials" );
+		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+
+
 		return "{}";
 	}
 
 	public String getCookies(Request req, Response res) {
-
-				String sql ="SELECT cookieName as name FROM Cookie";
-				try(Statement st =conn.createStatement()){
-					ResultSet rs=st.executeQuery(sql);
+		String sql ="SELECT cookieName as name FROM Cookie";
+			try(Statement st =conn.createStatement()){
+				ResultSet rs=st.executeQuery(sql);
 					return Jsonizer.toJson(rs,"cookies");
-				} catch (SQLException e){
-
+			} catch (SQLException e){
+					e.getStackTrace();
 				}
-
-
 		return "{\"cookies\":[]}";
 	}
 
