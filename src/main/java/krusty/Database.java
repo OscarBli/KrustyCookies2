@@ -52,15 +52,15 @@ public class Database {
 	}
 
 	public String getCookies(Request req, Response res) {
-			if(req.params("cookie")!=null){
-				String sql ="SELECT * FROM Cookie";
+
+				String sql ="SELECT cookieName as name FROM Cookie";
 				try(Statement st =conn.createStatement()){
 					ResultSet rs=st.executeQuery(sql);
-					return Jsonizer.toJson(rs,"cookie");
+					return Jsonizer.toJson(rs,"cookies");
 				} catch (SQLException e){
 
 				}
-			}
+
 
 		return "{\"cookies\":[]}";
 	}
