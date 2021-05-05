@@ -4,6 +4,7 @@ import spark.Request;
 import spark.Response;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
@@ -72,6 +73,23 @@ public class Database {
 
 		String sql = "SELECT palletId as id,cookieName as cookie, createdDate as production_date, Blocked as blocked "+
 		"FROM Pallet";
+
+		String from;
+		String to;
+
+		ArrayList
+
+		if(req.queryParams("from")!=null){
+			from=req.queryParams("from");
+		}
+		if(req.queryParams("to")!=null){
+			to=req.queryParams("to");
+		}
+
+
+
+
+
 
 		try(Statement st = conn.createStatement()){
 			ResultSet rs=st.executeQuery(sql);
