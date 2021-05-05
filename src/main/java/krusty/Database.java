@@ -98,7 +98,7 @@ public class Database {
 			sql += " AND cookie = ?";
 			values.add(cookie);
 		}
-
+	//kalle
 		try(PreparedStatement ps=conn.prepareStatement(sql)){
 			for(int i = 0; i < values.size()-1; i++){
 				ps.setString(i+1, values.get(i));
