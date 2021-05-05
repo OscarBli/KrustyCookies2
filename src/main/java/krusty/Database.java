@@ -70,10 +70,17 @@ public class Database {
 
 	public String getPallets(Request req, Response res) {
 
-		String sql = "SELECT palletId as id,cookieName as cookie, createdDate as production_date, customerName as customer, Blocked as blocked "+
-		"FROM ordern,Pallet WHERE Pallet.orderId = ordern.orderId";
-		return getQuery(sql, "pallets");
-		//return "{\"pallets\":[]}";
+		String sql = "SELECT palletId as id,cookieName as cookie, createdDate as production_date, Blocked as blocked "+
+		"FROM Pallet";
+
+		try(Statement st = conn.createStatement()){
+			ResultSet rs=st.executeQuery(sql);
+
+		} catch (SQLException e){
+
+		}
+
+		return "{\"pallets\":[]}";
 	}
 
 	public String reset(Request req, Response res) {
@@ -81,7 +88,59 @@ public class Database {
 	}
 
 	public String createPallet(Request req, Response res) {
-		return "{}";
+
+		int error;
+
+		String cookie = req.queryParams("cookie");
+		int id=-1;
+		if(cookie==null){
+			error = 1;
+		} else {
+			String sql = "INSERT INTO Pallet(cookieName, createdDate, Blocked) VALUES (?,NOW(),?)";
+			try(PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)){
+				ps.setString(1, cookie);
+				ps.setInt(2, 0);
+				ps.executeUpdate();
+				id=ps.getGeneratedKeys().getInt(1);
+				error=0;
+			} catch (SQLException e){
+				e.printStackTrace();
+				error=2;
+			}
+		}
+
+		String sql = "SELECT ingredientName, amountIngredient FROM Recipe WHERE Recipe.cookieName=?";
+		try(PreparedStatement ps=conn.prepareStatement(sql)){
+			ps.setString(1, cookie);
+			ResultSet rs= ps.executeQuery();
+
+			while(rs.next()){
+				String ingredient = rs.getString("ingredientName");
+				int amount = 54 * rs.getInt("amountIngredient");
+
+				String sql2 = "UPDATE Ingredient SET amountInStock = amountInStock-? WHERE ingredientName=?";
+				try(PreparedStatement ps2 = conn.prepareStatement(sql2)){
+					ps2.setInt(1, amount);
+					ps2.setString(2, ingredient);
+					ps2.executeUpdate();
+				} catch (SQLException e){
+					e.printStackTrace();
+				}
+
+			}
+
+		} catch(SQLException e){
+			e.printStackTrace();
+		}
+
+		if(error==0){
+			return "{\n\t\"status\": \"ok\" ," +
+					"\n\t\"id\": " + id + "\n}";
+		} else if(error==1){
+			return "{\n\t\"status\": \"unknown cookie\"\n}";
+		} else {
+			return "{\n\t\"status\": \"error\"\n}";
+		}
 	}
 
 	private String getQuery(String sql, String name){
@@ -90,7 +149,7 @@ public class Database {
 			return Jsonizer.toJson(rs, name);
 		} catch (SQLException e){
 			e.printStackTrace();
+			return "{]";
 		}
-		return "{]";
 	}
 }
