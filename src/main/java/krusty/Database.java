@@ -74,17 +74,44 @@ public class Database {
 		String sql = "SELECT palletId as id,cookieName as cookie, createdDate as production_date, Blocked as blocked "+
 		"FROM Pallet";
 
+		String cookie;
 		String from;
 		String to;
 
-		ArrayList
+		ArrayList<String> values = new ArrayList<String>();
+
 
 		if(req.queryParams("from")!=null){
 			from=req.queryParams("from");
+			sql += " WHERE (production_date BETWEEN ?";
+			values.add(from);
 		}
 		if(req.queryParams("to")!=null){
 			to=req.queryParams("to");
+			sql += " AND ?)";
+			values.add(to);
 		}
+
+
+		if(req.queryParams("cookie")!=null){
+			cookie=req.queryParams("cookie");
+			sql += " AND cookie = ?";
+			values.add(cookie);
+		}
+
+		try(PreparedStatement ps=conn.prepareStatement(sql)){
+			for(int i = 0; i < values.size()-1; i++){
+				ps.setString(i+1, values.get(i));
+				ps.setString(i+2, values.get(i+1));
+				ps.setString(i+3, values.get(i+2));
+			}
+			ResultSet rs = ps.executeQuery(sql);
+			return Jsonizer.toJson(rs, "pallets");
+		}catch (SQLException e){
+			e.printStackTrace();
+		}
+
+
 
 
 
