@@ -84,7 +84,7 @@ public class Database {
 			values.add(req.queryParams("cookie"));
 			sql += " WHERE cookie=?";
 		}
-
+//hej
 		if(req.queryParams("from")!=null && req.queryParams("to")!=null){
 			sql += "AND (production_date BETWEEN ? AND ?";
 			values.add(req.queryParams("from"));
