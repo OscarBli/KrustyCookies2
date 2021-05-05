@@ -81,21 +81,19 @@ public class Database {
 		ArrayList<String> values = new ArrayList<String>();
 
 		if(req.queryParams("cookie")!=null){
-			cookie=req.queryParams("cookie");
-			sql += " WHERE cookie = ?";
-			values.add(cookie);
+			values.add(req.queryParams("cookie"));
+			sql += " WHERE cookie=?";
 		}
 
 		if(req.queryParams("from")!=null && req.queryParams("to")!=null){
-			from=req.queryParams("from");
-			to=req.queryParams("to");
-			sql += " AND (production_date BETWEEN ? AND ?";
-			values.add(from);
-			values.add(to);
+			sql += "AND (production_date BETWEEN ? AND ?";
+			values.add(req.queryParams("from"));
+			values.add(req.queryParams("to"));
 		}
 
 		try(PreparedStatement ps=conn.prepareStatement(sql)){
 			for(int i = 0; i < values.size()-1; i++){
+				System.out.println(values.get(i));
 				ps.setString(i+1, values.get(i));
 			}
 			ResultSet rs = ps.executeQuery(sql);
@@ -103,21 +101,6 @@ public class Database {
 		}catch (SQLException e){
 			e.printStackTrace();
 		}
-
-
-
-
-
-
-
-
-		try(Statement st = conn.createStatement()){
-			ResultSet rs=st.executeQuery(sql);
-
-		} catch (SQLException e){
-
-		}
-
 		return "{\"pallets\":[]}";
 	}
 
