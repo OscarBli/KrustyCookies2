@@ -80,7 +80,7 @@ public class Database {
 				"Customer.customerName as name," +
 				"IF(blocked = 0, 'No', 'Yes') as blocked "+
 				"FROM Pallet LEFT JOIN ordern ON ordern.orderId LEFT JOIN Customer ON Customer.customerName";
-
+//d
 		String cookie;
 		String from;
 		String to;
