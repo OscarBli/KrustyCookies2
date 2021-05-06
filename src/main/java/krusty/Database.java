@@ -77,9 +77,9 @@ public class Database {
 	public String getPallets(Request req, Response res) {
 
 		String sql = "SELECT palletId as id,cookieName as cookie, createdDate as production_date," +
-				"Customer.customerName as name," +
+				"ordern.customerName as customer," +
 				"IF(blocked = 0, 'No', 'Yes') as blocked "+
-				"FROM Pallet LEFT JOIN ordern ON ordern.orderId LEFT JOIN Customer ON Customer.customerName";
+				"FROM Pallet LEFT JOIN ordern ON ordern.orderId";
 //d
 		String cookie;
 		String from;
@@ -100,6 +100,14 @@ public class Database {
 			sql += "AND createdDate BETWEEN ? AND ?";
 			values.add(req.queryParams("from"));
 			values.add(req.queryParams("to"));
+		}
+
+		if(req.queryParams("blocked").equals("Yes")){
+			sql += "AND blocked == '1'";
+			values.add(req.queryParams("blocked"));
+		}else{
+			sql += "AND blocked == '0'";
+			values.add(req.queryParams("blocked"));
 		}
 
 		try(PreparedStatement ps=conn.prepareStatement(sql)){
