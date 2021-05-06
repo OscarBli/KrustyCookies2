@@ -3,11 +3,15 @@ package krusty;
 import spark.Request;
 import spark.Response;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
+
 
 import static krusty.Jsonizer.toJson;
 
@@ -95,7 +99,7 @@ public class Database {
 			for(int i = 0; i < values.size(); i++){
 				ps.setString(i+1, values.get(i));
 			}
-			System.out.println(ps.toString());
+			//System.out.println(ps.toString());
 			ResultSet rs = ps.executeQuery();
 			return Jsonizer.toJson(rs, "pallets");
 		}catch (SQLException e){
@@ -106,9 +110,63 @@ public class Database {
 
 
 	public String reset(Request req, Response res) {
-
+		String[] tables={"Cookie","Customer","Ingredient","ordern","Pallet","PalletOrder","Recipe"};
+		setForeignKeyCheck(true);
+		for(int i =0;i< tables.length;i++){
+			System.out.println(truncateTable(tables[i]));
+		}
+		setForeignKeyCheck(false);
+		String line;
+		try{
+			for(int i =1; i<5;i++){
+				StringBuilder sb= new StringBuilder();
+				BufferedReader reader= new BufferedReader(new FileReader("sql-script"+i+".txt"));
+				while((line=reader.readLine())!=null){
+					sb.append(line);
+					sb.append("\n");
+					//System.out.println(sb.toString());
+				}
+				updateQuery(sb.toString());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		return "{}";
+	}
+
+	private Boolean setForeignKeyCheck(Boolean check){
+		String sql;
+		if(check==true){
+			sql="SET FOREIGN_KEY_CHECKS = 0";
+			updateQuery(sql);
+			return true;
+		} else {
+			sql="SET FOREIGN_KEY_CHECKS = 1";
+			updateQuery(sql);
+			return false;
+		}
+
+	}
+	private boolean updateQuery(String sql){
+		try(Statement st=conn.createStatement()){
+			st.execute(sql);
+			return true;
+		} catch (SQLException e){
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	private Boolean truncateTable(String table){
+		try(Statement st = conn.createStatement()){
+			String sql="TRUNCATE TABLE "+table;
+			st.execute(sql);
+			return true;
+		} catch (SQLException e){
+			return false;
+		}
+
 	}
 
 	public String createPallet(Request req, Response res) {
