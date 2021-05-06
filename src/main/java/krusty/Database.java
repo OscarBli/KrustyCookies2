@@ -72,7 +72,7 @@ public class Database {
 	public String getPallets(Request req, Response res) {
 
 		String sql = "SELECT palletId as id,cookieName as cookie, createdDate as production_date, Blocked as blocked "+
-		"FROM Pallet";
+				"FROM Pallet";
 
 		String cookie;
 		String from;
@@ -82,21 +82,21 @@ public class Database {
 
 		if(req.queryParams("cookie")!=null){
 			values.add(req.queryParams("cookie"));
-			sql += " WHERE cookie=?";
+			sql += " WHERE cookieName=?";
 		}
-//hej
+
 		if(req.queryParams("from")!=null && req.queryParams("to")!=null){
-			sql += "AND (production_date BETWEEN ? AND ?";
+			sql += "AND createdDate BETWEEN ? AND ?";
 			values.add(req.queryParams("from"));
 			values.add(req.queryParams("to"));
 		}
 
 		try(PreparedStatement ps=conn.prepareStatement(sql)){
-			for(int i = 0; i < values.size()-1; i++){
-				System.out.println(values.get(i));
+			for(int i = 0; i < values.size(); i++){
 				ps.setString(i+1, values.get(i));
 			}
-			ResultSet rs = ps.executeQuery(sql);
+			System.out.println(ps.toString());
+			ResultSet rs = ps.executeQuery();
 			return Jsonizer.toJson(rs, "pallets");
 		}catch (SQLException e){
 			e.printStackTrace();
@@ -104,7 +104,10 @@ public class Database {
 		return "{\"pallets\":[]}";
 	}
 
+
 	public String reset(Request req, Response res) {
+
+
 		return "{}";
 	}
 
@@ -122,7 +125,10 @@ public class Database {
 				ps.setString(1, cookie);
 				ps.setInt(2, 0);
 				ps.executeUpdate();
-				id=ps.getGeneratedKeys().getInt(1);
+				ResultSet key=ps.getGeneratedKeys();
+				if(key.next()){
+					id=key.getInt(1);
+				}
 				error=0;
 			} catch (SQLException e){
 				e.printStackTrace();
