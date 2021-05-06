@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 
+import static krusty.Jsonizer.anythingToJson;
 import static krusty.Jsonizer.toJson;
 
 public class Database {
@@ -75,8 +76,10 @@ public class Database {
 
 	public String getPallets(Request req, Response res) {
 
-		String sql = "SELECT palletId as id,cookieName as cookie, createdDate as production_date, Blocked as blocked "+
-				"FROM Pallet";
+		String sql = "SELECT palletId as id,cookieName as cookie, createdDate as production_date," +
+				"Customer.customerName as name," +
+				"IF(blocked = 0, 'No', 'Yes') as blocked "+
+				"FROM Pallet LEFT JOIN ordern ON ordern.orderId LEFT JOIN Customer ON Customer.customerName";
 
 		String cookie;
 		String from;
@@ -88,7 +91,11 @@ public class Database {
 			values.add(req.queryParams("cookie"));
 			sql += " WHERE cookieName=?";
 		}
+		if(req.queryParams("from")!=null && req.queryParams("to")==null){
+			sql += "AND createdDate BETWEEN ? AND NOW()";
+			values.add(req.queryParams("from"));
 
+		}
 		if(req.queryParams("from")!=null && req.queryParams("to")!=null){
 			sql += "AND createdDate BETWEEN ? AND ?";
 			values.add(req.queryParams("from"));
@@ -172,9 +179,8 @@ public class Database {
 	public String createPallet(Request req, Response res) {
 
 		int error;
-
-		String cookie = req.queryParams("cookie");
 		int id=-1;
+		String cookie = req.queryParams("cookie");
 		if(cookie==null){
 			error = 1;
 		} else {
@@ -219,10 +225,10 @@ public class Database {
 		}
 
 		if(error==0){
-			return "{\n\t\"status\": \"ok\" ," +
+			return  "{\n\t\"status\": \"ok\" ," +
 					"\n\t\"id\": " + id + "\n}";
 		} else if(error==1){
-			return "{\n\t\"status\": \"unknown cookie\"\n}";
+			return "{\"status\": \"unknown cookie\"}";
 		} else {
 			return "{\n\t\"status\": \"error\"\n}";
 		}
