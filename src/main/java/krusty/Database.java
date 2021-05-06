@@ -79,7 +79,7 @@ public class Database {
 		String sql = "SELECT palletId as id,cookieName as cookie, createdDate as production_date," +
 				"ordern.customerName as customer," +
 				"IF(blocked = 0, 'No', 'Yes') as blocked "+
-				"FROM Pallet LEFT JOIN ordern ON ordern.orderId";
+				"FROM Pallet LEFT JOIN ordern ON Pallet.orderId";
 //d
 		String cookie;
 		String from;
@@ -101,21 +101,21 @@ public class Database {
 			values.add(req.queryParams("from"));
 			values.add(req.queryParams("to"));
 		}
-
-		if(req.queryParams("blocked").equals("Yes")){
-			sql += "AND blocked == '1'";
-			values.add(req.queryParams("blocked"));
+		if(req.queryParams("blocked") != null){
+		if(req.queryParams("blocked").equals("yes")){
+			sql += "AND blocked = '1'";
 		}else{
-			sql += "AND blocked == '0'";
-			values.add(req.queryParams("blocked"));
+			sql += "AND blocked = '0'";
 		}
+	}
 
 		try(PreparedStatement ps=conn.prepareStatement(sql)){
 			for(int i = 0; i < values.size(); i++){
 				ps.setString(i+1, values.get(i));
 			}
-			//System.out.println(ps.toString());
+
 			ResultSet rs = ps.executeQuery();
+			System.out.print(req.queryParams("blocked"));
 			return Jsonizer.toJson(rs, "pallets");
 		}catch (SQLException e){
 			e.printStackTrace();
