@@ -78,7 +78,7 @@ public class Database {
 
 		String sql = "SELECT palletId as id,cookieName as cookie, createdDate as production_date," +
 				"ordern.customerName as customer," +
-				"IF(blocked = 0, 'No', 'Yes') as blocked "+
+				"IF(blocked = 0, 'no', 'yes') as blocked "+
 				"FROM Pallet LEFT JOIN ordern ON Pallet.orderId";
 //d
 		String cookie;
