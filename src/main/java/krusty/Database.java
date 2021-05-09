@@ -217,6 +217,8 @@ public class Database {
 		}
 	}
 
+	//ta bort denna kommentar
+
 	private String getQuery(String sql, String name){
 		try(Statement st=conn.createStatement()){
 			ResultSet rs=st.executeQuery(sql);
