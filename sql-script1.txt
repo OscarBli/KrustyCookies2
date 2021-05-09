@@ -1,6 +1,6 @@
 
 INSERT INTO Customer (
-customerName, Adress
+customerName, address
 )
 VALUES
 ("Finkakor AB", "Helsingborg"), 
