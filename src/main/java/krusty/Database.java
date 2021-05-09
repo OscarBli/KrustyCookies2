@@ -7,7 +7,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.TreeMap;
 
 
 import static krusty.Jsonizer.anythingToJson;
@@ -89,8 +92,16 @@ public class Database {
 			}
 	}
 
-		return preparedStatement(sql, values);
-
+		try(PreparedStatement ps=conn.prepareStatement(sql)){
+			for(int i = 0; i < values.size(); i++){
+				ps.setString(i+1, values.get(i));
+			}
+			ResultSet rs=ps.executeQuery();
+			return Jsonizer.toJson(rs, "pallets");
+		}catch (SQLException e){
+			e.printStackTrace();
+		}
+		return "{\"pallets\":[]}";
 	}
 
 
@@ -119,82 +130,6 @@ public class Database {
 		return "{}";
 	}
 
-
-	public String createPallet(Request req, Response res) {
-		int error;
-		int id=-1;
-		String cookie = req.queryParams("cookie");
-		if(cookie==null){
-			error = 1;
-		} else {
-			String sql = "INSERT INTO Pallet(cookieName, createdDate, Blocked) VALUES (?,NOW(),?)";
-			try(PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)){
-				ps.setString(1, cookie);
-				ps.setInt(2, 0);
-				ps.executeUpdate();
-				ResultSet key=ps.getGeneratedKeys();
-				if(key.next()){
-					id=key.getInt(1);
-				}
-				error=0;
-			} catch (SQLException e){
-				e.printStackTrace();
-				error=2;
-			}
-		}
-
-		String sql = "SELECT ingredientName, amountIngredient FROM Recipe WHERE Recipe.cookieName=?";
-		try(PreparedStatement ps=conn.prepareStatement(sql)){
-			ps.setString(1, cookie);
-			ResultSet rs= ps.executeQuery();
-			while(rs.next()){
-				String ingredient = rs.getString("ingredientName");
-				int amount = 54 * rs.getInt("amountIngredient");
-
-				String sql2 = "UPDATE Ingredient SET amountInStock = amountInStock-? WHERE ingredientName=?";
-				try(PreparedStatement ps2 = conn.prepareStatement(sql2)){
-					ps2.setInt(1, amount);
-					ps2.setString(2, ingredient);
-					ps2.executeUpdate();
-				} catch (SQLException e){
-					e.printStackTrace();
-				}
-			}
-		} catch(SQLException e){
-			e.printStackTrace();
-		}
-		if(error==0){
-			return  "{\"status\": \"ok\" ," +
-					"\n\"id\": " + id + "}";
-		} else if(error==1){
-			return "{\"status\": \"unknown cookie\"}";
-		} else {
-			return "{\n\t\"status\": \"error\"\n}";
-		}
-	}
-
-	private String preparedStatement(String sql, List<String> values){
-		try(PreparedStatement ps=conn.prepareStatement(sql)){
-			for(int i = 0; i < values.size(); i++){
-				ps.setString(i+1, values.get(i));
-			}
-			ResultSet rs=ps.executeQuery();
-			return Jsonizer.toJson(rs, "pallets");
-		}catch (SQLException e){
-			e.printStackTrace();
-			return "{\"pallets\":[]}";
-		}
-	}
-
-	private String getQuery(String sql, String name){
-		try(Statement st=conn.createStatement()){
-			ResultSet rs=st.executeQuery(sql);
-			return Jsonizer.toJson(rs, name);
-		} catch (SQLException e){
-			e.printStackTrace();
-			return "{]";
-		}
-	}
 	private Boolean setForeignKeyCheck(Boolean check){
 		String sql;
 		if(check==true){
@@ -229,4 +164,63 @@ public class Database {
 
 	}
 
+	public String createPallet(Request req, Response res) {
+		int id=-1;
+		String cookie = req.queryParams("cookie");
+		if(cookie==null){
+			return "{\"status\": \"unknown cookie\"}";
+		} else {
+			String sql = "INSERT INTO Pallet(cookieName, createdDate, Blocked) VALUES (?,NOW(),?)";
+			try(PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)){
+				ps.setString(1, cookie);
+				ps.setInt(2, 0);
+				ps.executeUpdate();
+				ResultSet key=ps.getGeneratedKeys();
+				if(key.next()){
+					id=key.getInt(1);
+				}
+			} catch (SQLException e){
+				e.printStackTrace();
+				return "{\n\t\"status\": \"error\"\n}";
+			}
+
+			String sql1 = "SELECT ingredientName, amountIngredient FROM Recipe WHERE Recipe.cookieName=?";
+			try(PreparedStatement ps=conn.prepareStatement(sql1)){
+				ps.setString(1, cookie);
+				ResultSet rs= ps.executeQuery();
+				while(rs.next()){
+					String ingredient = rs.getString("ingredientName");
+					int amount = 54 * rs.getInt("amountIngredient");
+
+					String sql2 = "UPDATE Ingredient SET amountInStock = amountInStock-? WHERE ingredientName=?";
+					try(PreparedStatement ps2 = conn.prepareStatement(sql2)){
+						ps2.setInt(1, amount);
+						ps2.setString(2, ingredient);
+						ps2.executeUpdate();
+					} catch (SQLException e){
+						e.printStackTrace();
+						return "{\n\t\"status\": \"error\"\n}";
+					}
+				}
+			} catch(SQLException e){
+				e.printStackTrace();
+			}
+			return  "{\"status\": \"ok\" ," +
+					"\n\"id\": " + id + "}";
+		}
+	}
+
+	//ta bort denna kommentar
+
+	private String getQuery(String sql, String name){
+		try(Statement st=conn.createStatement()){
+			ResultSet rs=st.executeQuery(sql);
+			return Jsonizer.toJson(rs, name);
+		} catch (SQLException e){
+			e.printStackTrace();
+			return "{]";
+		}
+	}
 }
+
+//TA BORT KOMMENTAR
