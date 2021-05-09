@@ -17,16 +17,12 @@ import static krusty.Jsonizer.anythingToJson;
 import static krusty.Jsonizer.toJson;
 
 public class Database {
-	/**
-	 * Modify it to fit your environment and then use this string when connecting to your database!
-	 */
-	private static final String jdbcString = "vm23.cs.lth.se";
 
+	private static final String jdbcString = "vm23.cs.lth.se";
 	// For use with MySQL or PostgreSQL
 	private static final String jdbcUsername = "fi5004sj";
 	private static final String jdbcPassword = "f601lghw";
 	private Connection conn;
-	//private static final String database=""
 
 	public Boolean connect() {
 		try{
@@ -44,15 +40,9 @@ public class Database {
 		return false;
 	}
 
-
-	// TODO: Implement and change output in all methods below!
-
-
-
 	public String getCustomers(Request req, Response res) {
-		String sql = "SELECT Adress as address, customerName as name FROM Customer";
+		String sql = "SELECT address, customerName as name FROM Customer";
 		return getQuery(sql, "customers");
-
 	}
 
 	public String getRawMaterials(Request req, Response res) {
@@ -63,27 +53,21 @@ public class Database {
 	public String getCookies(Request req, Response res) {
 		String sql ="SELECT cookieName as name FROM Cookie";
 		return getQuery(sql,"cookies");
-//	return "{\"cookies\":[]}";
 	}
 
 	public String getRecipes(Request req, Response res) {
 
 		String sql ="SELECT cookieName as cookie, Ingredient.ingredientName as raw_material, amountIngredient as amount, unit FROM Ingredient, Recipe " +
 		"WHERE Recipe.ingredientName=Ingredient.ingredientName";
-
 		return getQuery(sql,"recipes");
 	}
 
 	public String getPallets(Request req, Response res) {
 
 		String sql = "SELECT palletId as id,cookieName as cookie, createdDate as production_date," +
-				"ordern.customerName as customer," +
+				"Orders.customerName as customer," +
 				"IF(blocked = 0, 'no', 'yes') as blocked "+
-				"FROM Pallet LEFT JOIN ordern ON Pallet.orderId";
-//d
-		String cookie;
-		String from;
-		String to;
+				"FROM Pallet LEFT JOIN Orders ON Pallet.orderId";
 
 		ArrayList<String> values = new ArrayList<String>();
 
@@ -94,7 +78,6 @@ public class Database {
 		if(req.queryParams("from")!=null && req.queryParams("to")==null){
 			sql += "AND createdDate BETWEEN ? AND NOW()";
 			values.add(req.queryParams("from"));
-
 		}
 		if(req.queryParams("from")!=null && req.queryParams("to")!=null){
 			sql += "AND createdDate BETWEEN ? AND ?";
@@ -102,20 +85,18 @@ public class Database {
 			values.add(req.queryParams("to"));
 		}
 		if(req.queryParams("blocked") != null){
-		if(req.queryParams("blocked").equals("yes")){
-			sql += "AND blocked = '1'";
-		}else{
-			sql += "AND blocked = '0'";
-		}
+			if(req.queryParams("blocked").equals("yes")){
+				sql += "AND blocked = '1'";
+			}else{
+				sql += "AND blocked = '0'";
+			}
 	}
 
 		try(PreparedStatement ps=conn.prepareStatement(sql)){
 			for(int i = 0; i < values.size(); i++){
 				ps.setString(i+1, values.get(i));
 			}
-
-			ResultSet rs = ps.executeQuery();
-			System.out.print(req.queryParams("blocked"));
+			ResultSet rs=ps.executeQuery();
 			return Jsonizer.toJson(rs, "pallets");
 		}catch (SQLException e){
 			e.printStackTrace();
@@ -125,7 +106,7 @@ public class Database {
 
 
 	public String reset(Request req, Response res) {
-		String[] tables={"Cookie","Customer","Ingredient","ordern","Pallet","PalletOrder","Recipe"};
+		String[] tables={"Cookie","Customer","Ingredient","Orders","Pallet","Recipe"};
 		setForeignKeyCheck(true);
 		for(int i =0;i< tables.length;i++){
 			System.out.println(truncateTable(tables[i]));
@@ -139,7 +120,6 @@ public class Database {
 				while((line=reader.readLine())!=null){
 					sb.append(line);
 					sb.append("\n");
-					//System.out.println(sb.toString());
 				}
 				updateQuery(sb.toString());
 			}
@@ -185,7 +165,6 @@ public class Database {
 	}
 
 	public String createPallet(Request req, Response res) {
-
 		int error;
 		int id=-1;
 		String cookie = req.queryParams("cookie");
@@ -207,13 +186,11 @@ public class Database {
 				error=2;
 			}
 		}
-		//h
 
 		String sql = "SELECT ingredientName, amountIngredient FROM Recipe WHERE Recipe.cookieName=?";
 		try(PreparedStatement ps=conn.prepareStatement(sql)){
 			ps.setString(1, cookie);
 			ResultSet rs= ps.executeQuery();
-
 			while(rs.next()){
 				String ingredient = rs.getString("ingredientName");
 				int amount = 54 * rs.getInt("amountIngredient");
@@ -226,16 +203,13 @@ public class Database {
 				} catch (SQLException e){
 					e.printStackTrace();
 				}
-
 			}
-
 		} catch(SQLException e){
 			e.printStackTrace();
 		}
-
 		if(error==0){
-			return  "{\n\t\"status\": \"ok\" ," +
-					"\n\t\"id\": " + id + "\n}";
+			return  "{\"status\": \"ok\" ," +
+					"\n\"id\": " + id + "}";
 		} else if(error==1){
 			return "{\"status\": \"unknown cookie\"}";
 		} else {
