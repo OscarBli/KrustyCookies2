@@ -7,10 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 
 import static krusty.Jsonizer.anythingToJson;
@@ -91,17 +88,7 @@ public class Database {
 				sql += "AND blocked = '0'";
 			}
 	}
-
-		try(PreparedStatement ps=conn.prepareStatement(sql)){
-			for(int i = 0; i < values.size(); i++){
-				ps.setString(i+1, values.get(i));
-			}
-			ResultSet rs=ps.executeQuery();
-			return Jsonizer.toJson(rs, "pallets");
-		}catch (SQLException e){
-			e.printStackTrace();
-		}
-		return "{\"pallets\":[]}";
+		return preparedStatement(sql, values);
 	}
 
 
@@ -128,6 +115,19 @@ public class Database {
 		}
 
 		return "{}";
+	}
+
+	private String preparedStatement(String sql, List<String> values){
+		try(PreparedStatement ps=conn.prepareStatement(sql)){
+			for(int i = 0; i < values.size(); i++){
+				ps.setString(i+1, values.get(i));
+			}
+			ResultSet rs=ps.executeQuery();
+			return Jsonizer.toJson(rs, "pallets");
+		}catch (SQLException e){
+			e.printStackTrace();
+			return "{\"pallets\":[]}";
+		}
 	}
 
 	private Boolean setForeignKeyCheck(Boolean check){
