@@ -210,7 +210,6 @@ public class Database {
 		}
 	}
 
-	//ta bort denna kommentar
 
 	private String getQuery(String sql, String name){
 		try(Statement st=conn.createStatement()){
@@ -222,5 +221,3 @@ public class Database {
 		}
 	}
 }
-
-//TA BORT KOMMENTAR
