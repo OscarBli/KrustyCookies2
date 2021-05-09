@@ -75,7 +75,6 @@ public class KrustyTests {
 	public void test05Pallets() throws JSONException {
 		String expected = readFile("ExpectedPallets.json");
 		String actual = getURL("pallets");
-		System.out.println(actual);
 		JSONAssert.assertEquals(expected, actual, false);
 	}
 	

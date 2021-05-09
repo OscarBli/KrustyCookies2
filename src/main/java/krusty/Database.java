@@ -7,10 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 
 import static krusty.Jsonizer.anythingToJson;
@@ -92,16 +89,8 @@ public class Database {
 			}
 	}
 
-		try(PreparedStatement ps=conn.prepareStatement(sql)){
-			for(int i = 0; i < values.size(); i++){
-				ps.setString(i+1, values.get(i));
-			}
-			ResultSet rs=ps.executeQuery();
-			return Jsonizer.toJson(rs, "pallets");
-		}catch (SQLException e){
-			e.printStackTrace();
-		}
-		return "{\"pallets\":[]}";
+		return preparedStatement(sql, values);
+
 	}
 
 
@@ -130,39 +119,6 @@ public class Database {
 		return "{}";
 	}
 
-	private Boolean setForeignKeyCheck(Boolean check){
-		String sql;
-		if(check==true){
-			sql="SET FOREIGN_KEY_CHECKS = 0";
-			updateQuery(sql);
-			return true;
-		} else {
-			sql="SET FOREIGN_KEY_CHECKS = 1";
-			updateQuery(sql);
-			return false;
-		}
-
-	}
-	private boolean updateQuery(String sql){
-		try(Statement st=conn.createStatement()){
-			st.execute(sql);
-			return true;
-		} catch (SQLException e){
-			e.printStackTrace();
-			return false;
-		}
-	}
-
-	private Boolean truncateTable(String table){
-		try(Statement st = conn.createStatement()){
-			String sql="TRUNCATE TABLE "+table;
-			st.execute(sql);
-			return true;
-		} catch (SQLException e){
-			return false;
-		}
-
-	}
 
 	public String createPallet(Request req, Response res) {
 		int error;
@@ -217,7 +173,18 @@ public class Database {
 		}
 	}
 
-	//ta bort denna kommentar
+	private String preparedStatement(String sql, List<String> values){
+		try(PreparedStatement ps=conn.prepareStatement(sql)){
+			for(int i = 0; i < values.size(); i++){
+				ps.setString(i+1, values.get(i));
+			}
+			ResultSet rs=ps.executeQuery();
+			return Jsonizer.toJson(rs, "pallets");
+		}catch (SQLException e){
+			e.printStackTrace();
+			return "{\"pallets\":[]}";
+		}
+	}
 
 	private String getQuery(String sql, String name){
 		try(Statement st=conn.createStatement()){
@@ -228,6 +195,38 @@ public class Database {
 			return "{]";
 		}
 	}
-}
+	private Boolean setForeignKeyCheck(Boolean check){
+		String sql;
+		if(check==true){
+			sql="SET FOREIGN_KEY_CHECKS = 0";
+			updateQuery(sql);
+			return true;
+		} else {
+			sql="SET FOREIGN_KEY_CHECKS = 1";
+			updateQuery(sql);
+			return false;
+		}
 
-//TA BORT KOMMENTAR
+	}
+	private boolean updateQuery(String sql){
+		try(Statement st=conn.createStatement()){
+			st.execute(sql);
+			return true;
+		} catch (SQLException e){
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	private Boolean truncateTable(String table){
+		try(Statement st = conn.createStatement()){
+			String sql="TRUNCATE TABLE "+table;
+			st.execute(sql);
+			return true;
+		} catch (SQLException e){
+			return false;
+		}
+
+	}
+
+}
